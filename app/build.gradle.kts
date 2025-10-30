@@ -56,11 +56,8 @@ dependencies {
 
     // --- Material 3 (chỉ cần 1) ---
     implementation("androidx.compose.material3:material3")
+    implementation(libs.firebase.database)
 
-    // --- Firebase Firestore ---
-    implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
-    implementation("com.google.firebase:firebase-firestore-ktx")
-    implementation("com.google.firebase:firebase-analytics")
 
     // --- Testing ---
     testImplementation(libs.junit)

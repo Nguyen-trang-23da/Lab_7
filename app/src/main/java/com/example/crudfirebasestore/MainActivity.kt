@@ -24,8 +24,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.crudfirebasestore.ui.theme.CrudFirebaseStoreTheme
 import com.example.crudfirebasestore.ui.theme.greenColor
-import com.google.firebase.firestore.CollectionReference
-import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
 
 class MainActivity : ComponentActivity() {
 
@@ -44,7 +44,7 @@ class MainActivity : ComponentActivity() {
                             TopAppBar(
                                 title = {
                                     Text(
-                                        text = "GFG",
+                                        text = "Realtime Database",
                                         modifier = Modifier.fillMaxWidth(),
                                         textAlign = TextAlign.Center,
                                         color = Color.White
@@ -59,7 +59,7 @@ class MainActivity : ComponentActivity() {
                         Column(modifier = Modifier.padding(innerPadding)) {
                             Text(
                                 modifier = Modifier.padding(16.dp),
-                                text = "Thêm dữ liệu",
+                                text = "Thêm dữ liệu vào Realtime Database",
                                 style = TextStyle(fontSize = 18.sp)
                             )
                             FirebaseUI(LocalContext.current)
@@ -74,8 +74,6 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FirebaseUI(context: Context) {
-
-    // State cho các trường nhập liệu
     val courseID = remember { mutableStateOf("") }
     val courseName = remember { mutableStateOf("") }
     val courseDuration = remember { mutableStateOf("") }
@@ -90,11 +88,10 @@ fun FirebaseUI(context: Context) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        // Input: Tên khóa học
         TextField(
             value = courseName.value,
             onValueChange = { courseName.value = it },
-            placeholder = { Text("Enter your course name") },
+            placeholder = { Text("Enter course name") },
             modifier = Modifier.fillMaxWidth(),
             textStyle = TextStyle(color = Color.Black, fontSize = 15.sp),
             singleLine = true
@@ -102,11 +99,10 @@ fun FirebaseUI(context: Context) {
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        // Input: Thời lượng
         TextField(
             value = courseDuration.value,
             onValueChange = { courseDuration.value = it },
-            placeholder = { Text("Enter your course duration") },
+            placeholder = { Text("Enter course duration") },
             modifier = Modifier.fillMaxWidth(),
             textStyle = TextStyle(color = Color.Black, fontSize = 15.sp),
             singleLine = true
@@ -114,11 +110,10 @@ fun FirebaseUI(context: Context) {
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        // Input: Mô tả
         TextField(
             value = courseDescription.value,
             onValueChange = { courseDescription.value = it },
-            placeholder = { Text("Enter your course description") },
+            placeholder = { Text("Enter course description") },
             modifier = Modifier.fillMaxWidth(),
             textStyle = TextStyle(color = Color.Black, fontSize = 15.sp),
             singleLine = true
@@ -126,7 +121,6 @@ fun FirebaseUI(context: Context) {
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Nút thêm dữ liệu
         Button(
             onClick = {
                 if (TextUtils.isEmpty(courseName.value)) {
@@ -136,8 +130,7 @@ fun FirebaseUI(context: Context) {
                 } else if (TextUtils.isEmpty(courseDescription.value)) {
                     Toast.makeText(context, "Please enter course description", Toast.LENGTH_SHORT).show()
                 } else {
-                    addDataToFirebase(
-                        courseID.value,
+                    addDataToRealtimeDatabase(
                         courseName.value,
                         courseDuration.value,
                         courseDescription.value,
@@ -152,7 +145,6 @@ fun FirebaseUI(context: Context) {
             Text(text = "Add Data", modifier = Modifier.padding(8.dp))
         }
 
-        // Nút xem danh sách khóa học
         Button(
             onClick = {
                 context.startActivity(Intent(context, CourseDetailsActivity::class.java))
@@ -166,28 +158,30 @@ fun FirebaseUI(context: Context) {
     }
 }
 
-// ✅ Hàm thêm dữ liệu vào Firestore
-fun addDataToFirebase(
-    courseID: String,
-    courseName: String,
-    courseDuration: String,
-    courseDescription: String,
+// ✅ HÀM THÊM DỮ LIỆU VÀO REALTIME DATABASE
+fun addDataToRealtimeDatabase(
+    name: String,
+    duration: String,
+    description: String,
     context: Context
 ) {
-    val db: FirebaseFirestore = FirebaseFirestore.getInstance()
-    val dbCourses: CollectionReference = db.collection("Courses")
-    val courses = Course(courseID, courseName, courseDuration, courseDescription)
+    val database: FirebaseDatabase = FirebaseDatabase.getInstance()
+    val ref: DatabaseReference = database.getReference("Courses")
 
-    dbCourses.add(courses)
+    val courseId = ref.push().key ?: ""
+
+    val course = Course(
+        courseID = courseId,
+        courseName = name,
+        courseDuration = duration,
+        courseDescription = description
+    )
+
+    ref.child(courseId).setValue(course)
         .addOnSuccessListener {
-            Toast.makeText(
-                context,
-                "Your Course has been added to Firebase Firestore",
-                Toast.LENGTH_SHORT
-            ).show()
+            Toast.makeText(context, "Added to Realtime Database!", Toast.LENGTH_SHORT).show()
         }
-        .addOnFailureListener { e ->
-            Toast.makeText(context, "Fail to add course \n$e", Toast.LENGTH_SHORT).show()
+        .addOnFailureListener {
+            Toast.makeText(context, "Failed: ${it.message}", Toast.LENGTH_SHORT).show()
         }
 }
-

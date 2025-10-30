@@ -1,13 +1,14 @@
 {
   "project_info": {
-    "project_number": "1019612136993",
-    "project_id": "crudfirebasestore-lab7",
-    "storage_bucket": "crudfirebasestore-lab7.firebasestorage.app"
+    "project_number": "666949715323",
+    "firebase_url": "https://realtime-database-bd7d0-default-rtdb.firebaseio.com",
+    "project_id": "realtime-database-bd7d0",
+    "storage_bucket": "realtime-database-bd7d0.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1019612136993:android:0eb942fa4b2744e4370560",
+        "mobilesdk_app_id": "1:666949715323:android:40debe4393784f248a29de",
         "android_client_info": {
           "package_name": "com.example.crudfirebasestore"
         }
@@ -15,7 +16,45 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBale_nVeHXT0kvX3HZVSzu6SPu8ZKXQDQ"
+          "current_key": "AIzaSyBYiW9QkEwJgYTE1Pr4tLulblxqwHgxuuI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:666949715323:android:007465df638415138a29de",
+        "android_client_info": {
+          "package_name": "com.example.cupcake"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBYiW9QkEwJgYTE1Pr4tLulblxqwHgxuuI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:666949715323:android:5531e03587b7bdb08a29de",
+        "android_client_info": {
+          "package_name": "com.example.message_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBYiW9QkEwJgYTE1Pr4tLulblxqwHgxuuI"
         }
       ],
       "services": {

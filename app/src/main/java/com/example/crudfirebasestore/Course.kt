@@ -1,12 +1,9 @@
 package com.example.crudfirebasestore
 
-import com.google.firebase.firestore.Exclude
-
+// ✅ Data class dùng cho Realtime Database
 data class Course(
-    // on below line creating variables.
-    @Exclude var courseID: String? = "",
+    var courseID: String? = "",
     var courseName: String? = "",
     var courseDuration: String? = "",
     var courseDescription: String? = ""
-
 )

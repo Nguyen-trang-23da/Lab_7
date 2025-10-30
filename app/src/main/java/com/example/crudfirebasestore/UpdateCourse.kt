@@ -21,12 +21,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.crudfirebasestore.ui.theme.CrudFirebaseStoreTheme
 import com.example.crudfirebasestore.ui.theme.greenColor
-import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
 
 class UpdateCourse : ComponentActivity() {
+    private lateinit var database: DatabaseReference
+
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        database = FirebaseDatabase.getInstance().getReference("Courses") // ✅ Realtime DB
+
         setContent {
             CrudFirebaseStoreTheme {
                 Surface(
@@ -58,7 +63,7 @@ class UpdateCourse : ComponentActivity() {
                             verticalArrangement = Arrangement.Top
                         ) {
                             Text(
-                                text = "Cập nhật dữ liệu.",
+                                text = "Cập nhật dữ liệu khóa học.",
                                 modifier = Modifier.padding(16.dp),
                                 style = MaterialTheme.typography.titleMedium
                             )
@@ -142,7 +147,7 @@ class UpdateCourse : ComponentActivity() {
                     } else if (TextUtils.isEmpty(courseDescription.value)) {
                         Toast.makeText(context, "Please enter course description", Toast.LENGTH_SHORT).show()
                     } else {
-                        updateDataToFirebase(
+                        updateDataToRealtimeDatabase(
                             courseID,
                             courseName.value,
                             courseDuration.value,
@@ -160,24 +165,27 @@ class UpdateCourse : ComponentActivity() {
         }
     }
 
-    // -------------------- Cập nhật Firebase --------------------
-    private fun updateDataToFirebase(
+    // -------------------- Cập nhật dữ liệu vào Realtime Database --------------------
+    private fun updateDataToRealtimeDatabase(
         courseID: String?,
         name: String?,
         duration: String?,
         description: String?,
         context: Context
     ) {
-        val updatedCourse = Course(courseID, name, duration, description)
-        val db = FirebaseFirestore.getInstance()
+        if (courseID == null || courseID.isEmpty()) {
+            Toast.makeText(context, "Invalid Course ID!", Toast.LENGTH_SHORT).show()
+            return
+        }
 
-        db.collection("Courses").document(courseID.toString()).set(updatedCourse)
+        val updatedCourse = Course(courseID, name, duration, description)
+        database.child(courseID).setValue(updatedCourse)
             .addOnSuccessListener {
-                Toast.makeText(context, "Course updated successfully.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Course updated successfully!", Toast.LENGTH_SHORT).show()
                 context.startActivity(Intent(context, CourseDetailsActivity::class.java))
             }
             .addOnFailureListener {
-                Toast.makeText(context, "Fail to update: ${it.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Failed: ${it.message}", Toast.LENGTH_SHORT).show()
             }
     }
 }

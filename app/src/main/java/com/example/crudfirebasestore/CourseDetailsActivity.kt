@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -27,13 +26,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.crudfirebasestore.ui.theme.CrudFirebaseStoreTheme
 import com.example.crudfirebasestore.ui.theme.greenColor
-import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.database.*
 
 class CourseDetailsActivity : ComponentActivity() {
+
+    private lateinit var database: DatabaseReference
+
     @OptIn(ExperimentalMaterial3Api::class)
     @SuppressLint("UnrememberedMutableState")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContent {
             CrudFirebaseStoreTheme {
                 Surface(
@@ -45,7 +48,7 @@ class CourseDetailsActivity : ComponentActivity() {
                             TopAppBar(
                                 title = {
                                     Text(
-                                        text = "GFG",
+                                        text = "Danh sách khóa học",
                                         modifier = Modifier.fillMaxWidth(),
                                         textAlign = TextAlign.Center,
                                         color = Color.White
@@ -58,45 +61,48 @@ class CourseDetailsActivity : ComponentActivity() {
                         }
                     ) { innerPadding ->
 
-                        var courseList = mutableStateListOf<Course?>()
-                        val db = FirebaseFirestore.getInstance()
+                        val courseList = mutableStateListOf<Course?>()
 
-                        db.collection("Courses").get()
-                            .addOnSuccessListener { queryDocumentSnapshots ->
-                                if (!queryDocumentSnapshots.isEmpty) {
-                                    val list = queryDocumentSnapshots.documents
-                                    for (d in list) {
-                                        val c: Course? = d.toObject(Course::class.java)
-                                        c?.courseID = d.id
-                                        Log.e("TAG", "Course id is : ${c!!.courseID}")
-                                        courseList.add(c)
+                        // ✅ Lấy dữ liệu từ Realtime Database
+                        database = FirebaseDatabase.getInstance().getReference("Courses")
+
+                        database.addValueEventListener(object : ValueEventListener {
+                            override fun onDataChange(snapshot: DataSnapshot) {
+                                courseList.clear()
+                                if (snapshot.exists()) {
+                                    for (courseSnap in snapshot.children) {
+                                        val course = courseSnap.getValue(Course::class.java)
+                                        courseList.add(course)
                                     }
                                 } else {
                                     Toast.makeText(
                                         this@CourseDetailsActivity,
-                                        "No data found in Database",
+                                        "Không có dữ liệu trong Realtime Database",
                                         Toast.LENGTH_SHORT
                                     ).show()
                                 }
                             }
-                            .addOnFailureListener {
+
+                            override fun onCancelled(error: DatabaseError) {
                                 Toast.makeText(
                                     this@CourseDetailsActivity,
-                                    "Fail to get the data.",
+                                    "Lỗi khi tải dữ liệu: ${error.message}",
                                     Toast.LENGTH_SHORT
                                 ).show()
                             }
+                        })
 
-                        firebaseUI(LocalContext.current, courseList, Modifier.padding(innerPadding))
+                        FirebaseListUI(LocalContext.current, courseList, Modifier.padding(innerPadding))
                     }
                 }
             }
         }
     }
 
+    // ✅ Giao diện hiển thị danh sách
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun firebaseUI(
+    fun FirebaseListUI(
         context: Context,
         courseList: SnapshotStateList<Course?>,
         modifier: Modifier = Modifier
@@ -112,17 +118,17 @@ class CourseDetailsActivity : ComponentActivity() {
                 itemsIndexed(courseList) { index, item ->
                     Card(
                         onClick = {
-                            val i = Intent(context, UpdateCourse::class.java)
-                            i.putExtra("courseName", item?.courseName)
-                            i.putExtra("courseDuration", item?.courseDuration)
-                            i.putExtra("courseDescription", item?.courseDescription)
-                            i.putExtra("courseID", item?.courseID)
-                            context.startActivity(i)
+                            val intent = Intent(context, UpdateCourse::class.java)
+                            intent.putExtra("courseID", item?.courseID)
+                            intent.putExtra("courseName", item?.courseName)
+                            intent.putExtra("courseDuration", item?.courseDuration)
+                            intent.putExtra("courseDescription", item?.courseDescription)
+                            context.startActivity(intent)
                         },
                         modifier = Modifier
                             .padding(8.dp)
                             .fillMaxWidth(),
-                        elevation = CardDefaults.cardElevation(6.dp) // ✅ Sửa chỗ lỗi đây
+                        elevation = CardDefaults.cardElevation(6.dp)
                     ) {
                         Column(
                             modifier = Modifier
@@ -142,11 +148,9 @@ class CourseDetailsActivity : ComponentActivity() {
                                 )
                             }
 
-                            Spacer(modifier = Modifier.height(5.dp))
-
                             item?.courseDuration?.let {
                                 Text(
-                                    text = it,
+                                    text = "Duration: $it",
                                     modifier = Modifier.padding(4.dp),
                                     color = Color.Black,
                                     textAlign = TextAlign.Center,
@@ -154,13 +158,11 @@ class CourseDetailsActivity : ComponentActivity() {
                                 )
                             }
 
-                            Spacer(modifier = Modifier.height(5.dp))
-
                             item?.courseDescription?.let {
                                 Text(
                                     text = it,
                                     modifier = Modifier.padding(4.dp),
-                                    color = Color.Black,
+                                    color = Color.Gray,
                                     textAlign = TextAlign.Center,
                                     style = TextStyle(fontSize = 15.sp)
                                 )
